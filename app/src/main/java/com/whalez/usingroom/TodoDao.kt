@@ -1,11 +1,12 @@
 package com.whalez.usingroom
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Dao // Data Access Object
 interface TodoDao {
     @Query("select * from Todo")
-    fun getAll(): List<Todo>
+    fun getAll(): LiveData<List<Todo>>
 
     @Insert
     fun insert(todo: Todo)

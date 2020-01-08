@@ -2,6 +2,7 @@ package com.whalez.usingroom
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.Observer
 import androidx.room.Room
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -17,7 +18,9 @@ class MainActivity : AppCompatActivity() {
             AppDatabase::class.java, "todo-db"
         ).allowMainThreadQueries().build()
 
-        txt_result.text = db.todoDao().getAll().toString()
+        db.todoDao().getAll().observe(this, Observer {
+            txt_result.text = it.toString()
+        })
 
         btn_add.setOnClickListener {
             db.todoDao().insert(Todo(edit_todo.text.toString()))
