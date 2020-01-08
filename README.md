@@ -1,6 +1,9 @@
 # UsingRoom
 Room을 사용한 정말정말 간단한 메모장
 
+## Demo
+Try demo on [here](https://appetize.io/app/tfy4k9rbup6bt7e5ba6wd84u2r?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
+
 ## 기능
 1. 하나의 Text View에 계속 추가해주는 방식
 2. 그게 전부. 수정, 삭제 기능 구현 x
