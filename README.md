@@ -1,5 +1,8 @@
 # UsingRoom
-**Room을 사용한 정말정말 간단한 메모장**
+**Room과 LiveData을 사용한 정말정말 간단한 메모장**
+
+- [Room](#room)
+- [LiveData](#livedata)
 
 ## Demo
 Try demo on [here](https://appetize.io/app/tfy4k9rbup6bt7e5ba6wd84u2r?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
@@ -8,10 +11,14 @@ Try demo on [here](https://appetize.io/app/tfy4k9rbup6bt7e5ba6wd84u2r?device=nex
 1. 하나의 Text View에 계속 추가해주는 방식
 2. 그게 전부. 수정, 삭제 기능 구현 x
 
-## 코드 설명
+---
+
+## Room
+
 - 할 일 테이블(Entity)를 구성하는 애트리뷰트들을 담은 data class Todo (title, id로 구성)를 만든다. 여기에는 반드시 이 클래스가 엔터티 임을 표현해주는 어노테이션 `@Entity`를 추가해야 한다.
 
   이때 id를 PK로 지정해주며, 자동으로 생성되도록하기 위해,
+  
   ```kotlin
   @PrimaryKey(autoGenerate = true)
   var id: Int = 0 
@@ -60,8 +67,47 @@ Try demo on [here](https://appetize.io/app/tfy4k9rbup6bt7e5ba6wd84u2r?device=nex
   ```
   DB는 백그라운드에서 동작하지 않으면 에러가 난다. 하지만 여기서는 간단하게 `allowMainThreadQueries()`를 이용해 에러 없이 동작하도록 했다.
 
+- [**Room 사용법에 대한 더 상세한 내용**](https://medium.com/@gus0000123/mvvm-aac-room-%EC%82%AC%EC%9A%A9%EB%B2%95-2-%EC%82%AC%EC%9A%A9%ED%8E%B8-43ea8a936b12)
+
+---
+
+
+## LiveData
+
+> 어떤 데이터를 불러오기 위해서 그 때마다 무언가를 호출해줘야하는 번거로움을 없앨 수 있다.
+> LiveData는 관찰(Observing)을 통해 자동으로 갱신되도록 해준다.
+
+예를 들어서 우리가 관찰하고 싶은게 Todo 라는 테이블이라고 하면, 관찰하고자 하는 것을 아래와 같이 `LiveData<>`로 감싸주면 된다.
+
+```kotlin
+// LiveData 적용 전: 
+// fun getAll(): List<Todo>
+fun getAll(): LiveData<List<Todo>>
+```
+
+LiveData를 적용하기 전에는 변경된 데이터를 뷰에 적용해줘야 할 때 마다 일일이
+
+```kotlin
+txt_result.text = db.todoDao().getAll().toString()
+```
+
+이런 코드를 추가 해주어야했다.
+
+하지만 LiveData를 적용함으로써
+
+```kotlin
+db.todoDao().getAll().observe(this, Observer {
+    txt_result.text = it.toString()
+})
+```
+
+이 코드 하나로 변경될 때 마다 알아서 뷰에도 적용되도록 구현할 수 있다.
+`it`은 변경된 내용을 의미한다.
+
+---
+
 #### 참조
 - [안드로이드 생존코딩 : 모던 안드로이드 - DB를 이용한 데이터 저장 방법 Room](https://www.youtube.com/watch?v=97xmJRZRGm4&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=2)
+- [안드로이드 생존코딩 : 모던 안드로이드 - LiveData](https://www.youtube.com/watch?v=E1OWnq_6R_0&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=4)
 
-- [**Room 사용법에 대한 더 상세한 내용**](https://medium.com/@gus0000123/mvvm-aac-room-%EC%82%AC%EC%9A%A9%EB%B2%95-2-%EC%82%AC%EC%9A%A9%ED%8E%B8-43ea8a936b12)
 
