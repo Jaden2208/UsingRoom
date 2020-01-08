@@ -5,7 +5,7 @@
 - [LiveData](#livedata)
 
 ## Demo
-Try demo on [here](https://appetize.io/app/tfy4k9rbup6bt7e5ba6wd84u2r?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
+Try demo on [here](https://appetize.io/app/axee3pphk4uttmppb4hk584ghc?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
 
 ## 기능
 1. 하나의 Text View에 계속 추가해주는 방식
