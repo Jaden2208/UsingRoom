@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
 
         btn_add.setOnClickListener {
             db.todoDao().insert(Todo(edit_todo.text.toString()))
-            txt_result.text = db.todoDao().getAll().toString()
             edit_todo.text.clear()
         }
 
