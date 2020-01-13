@@ -1,14 +1,17 @@
 # UsingRoom
-**Room, LiveData, Coroutine을 사용한 정말정말 간단한 메모장**
+**Room, LiveData, Coroutine, ViewModel을 사용한 정말정말 간단한 메모장**
 
 - [Room](#room)
 - [LiveData](#livedata)
 - [Coroutine](#coroutine)
+- [ViewModel](#viewmodel)
 
 ## Demo
-Try demo on [here](https://appetize.io/app/0ceg7btnqaa8d6ke9z2a3p7b7g?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
+
+Try demo on [here](https://appetize.io/app/rq672ddze8f5a0zfwnbgkax40g?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
 
 ## 기능
+
 1. 하나의 Text View에 계속 추가해주는 방식
 2. 그게 전부. 수정, 삭제 기능 구현 x
 
@@ -139,8 +142,46 @@ val db = Room.databaseBuilder(
 
 코루틴을 적용했다면 이전에 DB생성코드에서 사용한 `allowMainThreadQueries()` 는 제거해도 된다.
 
+#### 코루틴 추가 사항
+
+어떤 메서드에 코루틴을 적용할 때 CoroutineScope안에 작성하지 않아도 코드 상의 오류는 보이지 않는다. 하지만 suspend라는 키워드를 코루틴을 적용해야 하는 메서드에 추가 하면 CoroutineScope 밖에 해당 메서드를 호출할 때 빨간줄, 즉 오류가 뜨도록 할 수 있다.
+
+```kotlin
+suspend fun insert(todo: Todo) {
+    db.todoDao().insert(todo)
+}
+```
+
 ---
+
+## ViewModel
+
+- UI 와 로직을 분리하기 좋다.
+
+- 기울임을 통한 화면 전환시에 새로 화면이 초기화되는데, ViewModel의 경우에는 Activity가 완전히 종료될 때 까지 하나의 lifecycle을 유지하기 때문에 ViewModel에 넣어둔 데이터들은 다시 초기화 되지 않는다.
+
+코드를 작성할 때 하나의 Activity에 모든 기능들이 혼재 되어있는 것 보다는 별도의 클래스로 나눠주는게 좋다.
+
+그 클래스는 AndroidViewModel를 상속받아야 하고, Application을 생성자에서 받도록 한다.
+
+```kotlin
+class MainViewModel(application: Application): AndroidViewModel(application) {
+  ...
+}
+```
+
+그리고 MainActivity 에서 ViewModel을 불러오기 위해서는 `ViewModelProviders`를 이용하면 된다.  
+
+```kotlin
+val viewModel = ViewModelProvides.of(this)[MainViewModel::class.java]
+```
+
+---
+
+
 
 #### 참조
 - [안드로이드 생존코딩 : 모던 안드로이드 - DB를 이용한 데이터 저장 방법 Room](https://www.youtube.com/watch?v=97xmJRZRGm4&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=2)
 - [안드로이드 생존코딩 : 모던 안드로이드 - LiveData](https://www.youtube.com/watch?v=E1OWnq_6R_0&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=4)
+- [안드로이드 생존코딩 : 모던 안드로이드 - Room 비동기처리 Coroutine](https://www.youtube.com/watch?v=-iD1pXTrZj8&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=6)
+- [안드로이드 생존코딩 : 모던 안드로이드 - UI와 로직분리 ViewModel](https://www.youtube.com/watch?v=2mqt0j-a5xI&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=8)
