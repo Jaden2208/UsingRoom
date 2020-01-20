@@ -3,7 +3,10 @@ package com.whalez.usingroom
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
 import androidx.room.Room
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application): AndroidViewModel(application) {
     // 앱 데이터베이스 생성
@@ -12,11 +15,21 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
         AppDatabase::class.java, "todo-db"
     ).build()
 
+    var todos: LiveData<List<Todo>>
+
+    var newTodo: String? = null
+
+    init {
+        todos = getAll()
+    }
+
     fun getAll(): LiveData<List<Todo>> {
         return db.todoDao().getAll()
     }
 
-    suspend fun insert(todo: Todo) {
-        db.todoDao().insert(todo)
+    fun insert(todo: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            db.todoDao().insert(Todo(todo))
+        }
     }
 }

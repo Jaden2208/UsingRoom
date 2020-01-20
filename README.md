@@ -1,14 +1,15 @@
 # UsingRoom
-**Room, LiveData, Coroutine, ViewModel을 사용한 정말정말 간단한 메모장**
+**Room, LiveData, Coroutine, ViewModel, DataBinding을 사용한 정말정말 간단한 메모장**
 
 - [Room](#room)
 - [LiveData](#livedata)
 - [Coroutine](#coroutine)
 - [ViewModel](#viewmodel)
+- [DataBinding](#databinding)
 
 ## Demo
 
-Try demo on [here](https://appetize.io/app/rq672ddze8f5a0zfwnbgkax40g?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
+Try demo on [here](https://appetize.io/app/1c9m363qd921v36tq5d61gjrym?device=nexus5&scale=75&orientation=portrait&osVersion=8.1)!
 
 ## 기능
 
@@ -27,6 +28,7 @@ Try demo on [here](https://appetize.io/app/rq672ddze8f5a0zfwnbgkax40g?device=nex
   @PrimaryKey(autoGenerate = true)
   var id: Int = 0
   ```
+
   위와 같이 구현했다.
 
 - Dao (Database Access Object) 인터페이스 구현
@@ -178,6 +180,122 @@ val viewModel = ViewModelProvides.of(this)[MainViewModel::class.java]
 
 ---
 
+## DataBinding
+
+데이터바인딩을 사용하면 xml에다가 데이터를 넘겨줄 수 있다.
+Logic에 관한 부분이 현재 MainViewModel에 다 들어있는데 이것들을 XML에 던져버리고 그거에 반응해서 알아서 동작으로 하도록 수정할 것이다.
+
+먼저 datBinding 설정을 위해 gradle 설정을 해준다.(자세한 건 맨 아래 참고 링크에서 확인)
+
+그리고 데이터바인딩을 적용할 레이아웃을 layout으로 감싸준다.
+
+```xml
+<layout>
+  ...
+</layout>
+```
+
+기존에 `setContentView(R.layout.activity_main)` 하던 것을 아래 코드와 같이 수정해서 binding 객체를 저장해놓는다.
+
+```kotlin
+val binding = DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+```
+
+그리고 livedata를 활용하기 위해서 다음의 코드를 추가한다.
+
+```kotlin
+binding.lifecycleOwner = this
+```
+
+이게 없으면 livedata를 관찰할 때 마다 데이터 xml이 refresh되지 않는다.
+
+그리고 xml 파일에서 데이터를 받기 위해 `<data>`를 추가해준다.
+
+```xml
+<data>
+    <variable
+        name="viewModel"
+        type="com.whalez.usingroom.MainViewModel" />
+</data>
+```
+
+여기에 `MainActivity`의 `viewModel` 객체를 넣어주기 위해 다음의 코드를 추가한다.
+
+```kotlin
+binding.viewModel = viewModel
+```
+
+MainViewModel을 다음과 같이 수정한다.
+
+```kotlin
+class MainViewModel(application: Application): AndroidViewModel(application) {
+    // 앱 데이터베이스 생성
+    private val db = Room.databaseBuilder(
+        application,
+        AppDatabase::class.java, "todo-db"
+    ).build()
+
+    var todos: LiveData<List<Todo>> // .. 1
+
+    var newTodo: String? = null // .. 2
+
+    init {
+        todos = getAll()
+    }
+
+    fun getAll(): LiveData<List<Todo>> {
+        return db.todoDao().getAll()
+    }
+
+    fun insert(todo: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            db.todoDao().insert(Todo(todo))
+        }
+    }
+}
+```
+
+1번 주석은 아래와 같이 데이터 바인딩을 구현한다.
+
+```xml
+<TextView
+    android:id="@+id/txt_result"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:text="@{viewModel.todos.toString()}" />
+```
+
+2번 주석은 아래와 같이 데이터 바인딩을 구현한다.
+
+```xml
+<EditText
+    android:id="@+id/edit_todo"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentStart="true"
+    android:layout_toStartOf="@id/btn_add"
+    android:hint="할 일"
+    android:text="@={viewModel.newTodo}" />
+```
+
+그리고 `MainActivity` 에서 더 이상 필요 없는 코드를 제거 하고 나면 이렇게 짧게 줄일 수 있다.
+
+```kotlin
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val binding = DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        binding.lifecycleOwner = this
+
+        val viewModel = ViewModelProviders.of(this)[MainViewModel::class.java]
+        binding.viewModel = viewModel
+    }
+}
+```
+
+
+---
 
 
 #### 참조
@@ -185,3 +303,4 @@ val viewModel = ViewModelProvides.of(this)[MainViewModel::class.java]
 - [안드로이드 생존코딩 : 모던 안드로이드 - LiveData](https://www.youtube.com/watch?v=E1OWnq_6R_0&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=4)
 - [안드로이드 생존코딩 : 모던 안드로이드 - Room 비동기처리 Coroutine](https://www.youtube.com/watch?v=-iD1pXTrZj8&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=6)
 - [안드로이드 생존코딩 : 모던 안드로이드 - UI와 로직분리 ViewModel](https://www.youtube.com/watch?v=2mqt0j-a5xI&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=8)
+- [안드로이드 생존코딩 : 모던 안드로이드 - DataBinding](https://www.youtube.com/watch?v=5BUGO9YnDz8&list=PLxTmPHxRH3VXHOBnaGQcbSGslbAjr8obc&index=10)
